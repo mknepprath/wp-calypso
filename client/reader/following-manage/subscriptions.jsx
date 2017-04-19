@@ -20,15 +20,61 @@ class FollowingManageSubscriptions extends Component {
 		follows: PropTypes.array.isRequired,
 	}
 
+	constructor( props ) {
+		super( props );
+		this.state = this.getState( props );
+	}
+
+	componentWillReceiveProps( nextProps ) {
+		this.setState( this.getState( nextProps ) );
+	}
+
+	getState = ( props = this.props ) => {
+		const newState = {
+			subscriptions: props.follows,
+		};
+
+		if ( props.search ) {
+			newState.subscriptions = this.searchSubscriptions( newState.subscriptions, props.search );
+		}
+
+		// if ( this.state && this.state.sortOrder ) {
+		// 	newState.subscriptions = this.sortSubscriptions( newState.subscriptions, this.state.sortOrder );
+		// }
+
+		return newState;
+	}
+
+	searchSubscriptions( subscriptions/*, phrase*/ ) {
+		return subscriptions;
+
+		// @todo need the site and feed here, and change from immutable.js syntax
+		//
+		// return subscriptions.filter( function( item ) {
+		// 	const feed = null; // todo grab feed and site for current sub
+		// 	const site = null;
+		// 	const phraseRe = new RegExp( escapeRegexp( phrase ), 'i' );
+
+		// 	// return item.get( 'URL' ).search( phraseRe ) !== -1 ||
+		// 	// 	( site && ( site.get( 'name' ) || '' ).search( phraseRe ) !== -1 ) ||
+		// 	// 	( site && ( site.get( 'URL' ) || '' ).search( phraseRe ) !== -1 ) ||
+		// 	// 	( feed && ( feed.name || '' ).search( phraseRe ) !== -1 ) ||
+		// 	// 	( feed && ( feed.URL || '' ).search( phraseRe ) !== -1 ) ||
+		// 	// 	( feed && ( feed.feed_URL || '' ).search( phraseRe ) !== -1 );
+		// }, this );
+	}
+
 	render() {
-		const { follows, width, translate } = this.props;
+		const { width, translate } = this.props;
+		const subscriptions = this.state && this.state.subscriptions;
+
 		return (
 			<div className="following-manage__subscriptions">
 				<QueryReaderFollows />
 				<div className="following-manage__subscriptions-controls">
 					{
 						translate( '%(num)s Followed Sites', {
-							args: { num: follows.length }
+							args: { num: subscriptions.length }
 						} )
 					}
 					<ReaderImportButton />
@@ -36,10 +82,11 @@ class FollowingManageSubscriptions extends Component {
 					<FollowingManageSearchFollowed />
 				</div>
 				<div className="following-manage__subscriptions-list">
-					<SitesWindowScroller
-						sites={ follows }
-						width={ width }
-					/>
+					{ this.state.subscriptions &&
+						<SitesWindowScroller
+							sites={ subscriptions }
+							width={ width } />
+					}
 				</div>
 			</div>
 		);
