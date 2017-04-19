@@ -82,7 +82,7 @@ class FollowingManageSubscriptions extends Component {
 					<FollowingManageSearchFollowed />
 				</div>
 				<div className="following-manage__subscriptions-list">
-					{ this.state.subscriptions &&
+					{ subscriptions &&
 						<SitesWindowScroller
 							sites={ subscriptions }
 							width={ width } />
