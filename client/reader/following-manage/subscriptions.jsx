@@ -14,26 +14,17 @@ import ReaderExportButton from 'blocks/reader-export-button';
 import SitesWindowScroller from './sites-window-scroller';
 import QueryReaderFollows from 'components/data/query-reader-follows';
 import FollowingManageSearchFollowed from './search-followed';
+import { getFeed as getReaderFeed } from 'state/reader/feeds/selectors';
+import { getSite as getReaderSite } from 'state/reader/sites/selectors';
 
 class FollowingManageSubscriptions extends Component {
 	static propTypes = {
 		follows: PropTypes.array.isRequired,
-	}
-
-	constructor( props ) {
-		super( props );
-		this.state = this.getState( props );
-	}
-
-	componentWillReceiveProps( nextProps ) {
-		this.setState( this.getState( nextProps ) );
+		sites: PropTypes.array.isRequired,
+		feeds: PropTypes.array.isRequired,
 	}
 
 	getState = ( props = this.props ) => {
-		const newState = {
-			subscriptions: props.follows,
-		};
-
 		if ( props.search ) {
 			newState.subscriptions = this.searchSubscriptions( newState.subscriptions, props.search );
 		}
@@ -65,8 +56,7 @@ class FollowingManageSubscriptions extends Component {
 	}
 
 	render() {
-		const { width, translate } = this.props;
-		const subscriptions = this.state && this.state.subscriptions;
+		const { follows, width, translate } = this.props;
 
 		return (
 			<div className="following-manage__subscriptions">
@@ -74,7 +64,7 @@ class FollowingManageSubscriptions extends Component {
 				<div className="following-manage__subscriptions-controls">
 					{
 						translate( '%(num)s Followed Sites', {
-							args: { num: subscriptions.length }
+							args: { num: follows.length }
 						} )
 					}
 					<ReaderImportButton />
@@ -82,9 +72,9 @@ class FollowingManageSubscriptions extends Component {
 					<FollowingManageSearchFollowed />
 				</div>
 				<div className="following-manage__subscriptions-list">
-					{ subscriptions &&
+					{ follows &&
 						<SitesWindowScroller
-							sites={ subscriptions }
+							sites={ follows }
 							width={ width } />
 					}
 				</div>
@@ -93,6 +83,14 @@ class FollowingManageSubscriptions extends Component {
 	}
 }
 
+const mapStateToProps = state => {
+	const follows = getReaderFollows( state );
+	const getFeed = feedId => getReaderFeed( state, feedId );
+	const getSite = siteId => getReaderSite( state, siteId );
+
+	return { follows, getFeed, getSite };
+};
+
 export default connect(
-	state => ( { follows: getReaderFollows( state ) } ),
+	mapStateToProps,
 )( localize( FollowingManageSubscriptions ) );
