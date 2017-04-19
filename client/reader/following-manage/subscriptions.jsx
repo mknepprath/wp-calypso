@@ -4,7 +4,7 @@
 import React, { Component, PropTypes } from 'react';
 import { connect } from 'react-redux';
 import { localize } from 'i18n-calypso';
-import { getReaderFollows } from 'state/selectors';
+import escapeRegexp from 'escape-string-regexp';
 
 /**
  * Internal Dependencies
@@ -16,47 +16,41 @@ import QueryReaderFollows from 'components/data/query-reader-follows';
 import FollowingManageSearchFollowed from './search-followed';
 import { getFeed as getReaderFeed } from 'state/reader/feeds/selectors';
 import { getSite as getReaderSite } from 'state/reader/sites/selectors';
+import { getReaderFollows } from 'state/selectors';
 
 class FollowingManageSubscriptions extends Component {
 	static propTypes = {
 		follows: PropTypes.array.isRequired,
 		sites: PropTypes.array.isRequired,
 		feeds: PropTypes.array.isRequired,
+		doSearch: PropTypes.func.isRequired,
 	}
 
-	getState = ( props = this.props ) => {
-		if ( props.search ) {
-			newState.subscriptions = this.searchSubscriptions( newState.subscriptions, props.search );
-		}
+	state = { search: '' };
 
-		// if ( this.state && this.state.sortOrder ) {
-		// 	newState.subscriptions = this.sortSubscriptions( newState.subscriptions, this.state.sortOrder );
-		// }
+	filterFollowsByQuery( query ) {
+		const { getFeed, getSite, follows } = this.props;
 
-		return newState;
-	}
+		return follows.filter( follow => {
+			const feed = getFeed( follow.feed_ID ); // todo grab feed and site for current sub
+			const site = getSite( follow.site_ID );
+			const phraseRe = new RegExp( escapeRegexp( query ), 'i' );
 
-	searchSubscriptions( subscriptions/*, phrase*/ ) {
-		return subscriptions;
-
-		// @todo need the site and feed here, and change from immutable.js syntax
-		//
-		// return subscriptions.filter( function( item ) {
-		// 	const feed = null; // todo grab feed and site for current sub
-		// 	const site = null;
-		// 	const phraseRe = new RegExp( escapeRegexp( phrase ), 'i' );
-
-		// 	// return item.get( 'URL' ).search( phraseRe ) !== -1 ||
-		// 	// 	( site && ( site.get( 'name' ) || '' ).search( phraseRe ) !== -1 ) ||
-		// 	// 	( site && ( site.get( 'URL' ) || '' ).search( phraseRe ) !== -1 ) ||
-		// 	// 	( feed && ( feed.name || '' ).search( phraseRe ) !== -1 ) ||
-		// 	// 	( feed && ( feed.URL || '' ).search( phraseRe ) !== -1 ) ||
-		// 	// 	( feed && ( feed.feed_URL || '' ).search( phraseRe ) !== -1 );
-		// }, this );
+			return (
+				( follow.URL.search( phraseRe ) !== -1 ) ||
+				( site && ( site.name || '' ).search( phraseRe ) !== -1 ) ||
+				( site && ( site.URL || '' ).search( phraseRe ) !== -1 ) ||
+				( feed && ( feed.name || '' ).search( phraseRe ) !== -1 ) ||
+				( feed && ( feed.URL || '' ).search( phraseRe ) !== -1 ) ||
+				( feed && ( feed.feed_URL || '' ).search( phraseRe ) !== -1 )
+			);
+		} );
 	}
 
 	render() {
 		const { follows, width, translate } = this.props;
+		const handleSearch = search => this.setState( { search } ); // TODO move to lib/url-search
+		const filteredFollows = this.filterFollowsByQuery( this.state.search );
 
 		return (
 			<div className="following-manage__subscriptions">
@@ -69,12 +63,12 @@ class FollowingManageSubscriptions extends Component {
 					}
 					<ReaderImportButton />
 					<ReaderExportButton />
-					<FollowingManageSearchFollowed />
+					<FollowingManageSearchFollowed onSearch={ handleSearch } />
 				</div>
 				<div className="following-manage__subscriptions-list">
 					{ follows &&
 						<SitesWindowScroller
-							sites={ follows }
+							sites={ filteredFollows }
 							width={ width } />
 					}
 				</div>

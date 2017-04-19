@@ -41,10 +41,10 @@ const exported = {
 	},
 
 	followingManage( context ) {
-		const basePath = route.sectionify( context.path ),
-			fullAnalyticsPageTitle = analyticsPageTitle + ' > Manage Followed Sites',
-			mcKey = 'following_manage',
-			query = context.query.q;
+		const basePath = route.sectionify( context.path );
+		const fullAnalyticsPageTitle = analyticsPageTitle + ' > Manage Followed Sites';
+		const mcKey = 'following_manage';
+		const query = context.query.q;
 
 		setPageTitle( context, i18n.translate( 'Manage Followed Sites' ) );
 
