@@ -64,8 +64,7 @@ module.exports = {
 	siteSettings( context ) {
 		let analyticsPageTitle = 'Site Settings';
 		const basePath = route.sectionify( context.path );
-		const fiveMinutes = 5 * 60 * 1000;
-		let site = sites.getSelectedSite();
+		const site = getSelectedSite( context.store.getState() );
 		const section = sectionify( context.path ).split( '/' )[ 2 ];
 
 		// FIXME: Auto-converted from the Flux setTitle action. Please use <DocumentHead> instead.
@@ -81,17 +80,6 @@ module.exports = {
 		if ( site.jetpack && ! config.isEnabled( 'manage/jetpack' ) ) {
 			window.location.href = '//wordpress.com/manage/' + site.ID;
 			return;
-		}
-
-		if ( ! site.latestSettings || new Date().getTime() - site.latestSettings > ( fiveMinutes ) ) {
-			if ( sites.initialized ) {
-				site.fetchSettings();
-			} else {
-				sites.once( 'change', function() {
-					site = sites.getSelectedSite();
-					site.fetchSettings();
-				} );
-			}
 		}
 
 		const upgradeToBusiness = () => page( '/checkout/' + site.domain + '/business' );
