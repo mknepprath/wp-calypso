@@ -3,6 +3,7 @@
  */
 import React, { Component, PropTypes } from 'react';
 import ConnectedSubscriptionListItem from './connected-subscription-list-item';
+import { take } from 'lodash';
 
 /**
  * Internal Dependencies
@@ -24,7 +25,7 @@ class SitesWindowScroller extends Component {
 
 		return (
 			<div className="following-manage__sites-window-scroller">
-				{ sites.map( site => {
+				{ take( sites, 10 ).map( site => {
 					return (
 						<div key={ site.URL } style={ { width } }>
 							<ConnectedSubscriptionListItem url={ site.URL } feedId={ +site.feed_ID } siteId={ +site.blog_ID } />
