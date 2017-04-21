@@ -2,16 +2,12 @@
  * External Dependencies
  */
 import React, { Component, PropTypes } from 'react';
-import { connect } from 'react-redux';
-import { List, WindowScroller } from 'react-virtualized';
+import { List, WindowScroller, CellMeasurerCache, CellMeasurer } from 'react-virtualized';
 
 /**
  * Internal Dependencies
  */
 import ConnectedSubscriptionListItem from './connected-subscription-list-item';
-import { getFeed as getReaderFeed } from 'state/reader/feeds/selectors';
-import { getSite as getReaderSite } from 'state/reader/sites/selectors';
-import { getSiteDescription } from 'reader/get-helpers';
 
 /**
  * SitesWindowScroller is a component that takes in a list of site/feed objects.
@@ -24,32 +20,35 @@ class SitesWindowScroller extends Component {
 		sites: PropTypes.array.isRequired,
 	};
 
-	siteRowRenderer = ( { index, key, style } ) => {
+	heightCache = new CellMeasurerCache( {
+		fixedWidth: true,
+		minHeight: 50,
+	} );
+
+	siteRowRenderer = ( { index, key, style, parent } ) => {
 		const site = this.props.sites[ index ];
 
 		return (
-			<div key={ key } style={ style }>
-					<ConnectedSubscriptionListItem
-						url={ +site.URL }
-						feedId={ +site.feed_ID }
-						siteId={ +site.blog_ID }
-					/>
-			</div>
+			<CellMeasurer
+				cache={ this.heightCache }
+				columnIndex={ 0 }
+				key={ key }
+				rowIndex={ index }
+				parent={ parent }
+			>
+				{ ( { measure } ) => (
+					<div key={ key } style={ style } className="following-manage__sites-window-scroller-row-wrapper" >
+							<ConnectedSubscriptionListItem
+								url={ +site.URL }
+								feedId={ +site.feed_ID }
+								siteId={ +site.blog_ID }
+								onLoad={ measure }
+							/>
+					</div>
+				) }
+			</CellMeasurer>
 		);
 	};
-
-	getRowHeight = ( { index } ) => {
-		const { getFeed, getSite, sites } = this.props;
-		const follow = sites[ index ];
-		const feed = getFeed( follow.feed_ID );
-		const site = getSite( follow.blog_ID );
-
-		if ( getSiteDescription( { feed, site } ) ) {
-			return 85;
-		}
-
-		return 65;
-	}
 
 	render() {
 		const { sites, width } = this.props;
@@ -62,7 +61,7 @@ class SitesWindowScroller extends Component {
 							autoHeight
 							height={ height }
 							rowCount={ sites.length }
-							rowHeight={ this.getRowHeight }
+							rowHeight={ this.heightCache.rowHeight }
 							rowRenderer={ this.siteRowRenderer }
 							scrollTop={ scrollTop }
 							width={ width }
@@ -74,12 +73,4 @@ class SitesWindowScroller extends Component {
 	}
 }
 
-const mapStateToProps = state => {
-	const getFeed = feedId => getReaderFeed( state, feedId );
-	const getSite = siteId => getReaderSite( state, siteId );
-	return { getFeed, getSite };
-};
-
-export default connect(
-	mapStateToProps,
-)( SitesWindowScroller );
+export default SitesWindowScroller;
