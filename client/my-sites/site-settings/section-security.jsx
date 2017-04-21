@@ -24,7 +24,7 @@ const SiteSettingsSecurity = ( { site, translate } ) => {
 		);
 	}
 
-	if ( ! site.canManage() ) {
+	if ( ! site.canManage ) {
 		return (
 			<JetpackManageErrorPage
 				template="optInManage"
@@ -35,7 +35,7 @@ const SiteSettingsSecurity = ( { site, translate } ) => {
 		);
 	}
 
-	if ( ! site.versionCompare( '3.4', '>=' ) ) {
+	if ( ! site.hasMinimumJetpackVersion ) {
 		return (
 			<JetpackManageErrorPage
 				template="updateJetpack"
